@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { usePanelStore } from '@/stores/panel';
+import { usePanelStore } from '@/renderer/stores/panel';
 import PanelSidebar from '@/renderer/components/panel/PanelSidebar.vue';
 import BrowserTabs from '@/renderer/components/panel/BrowserTabs.vue';
 import BrowserContent from '@/renderer/components/panel/BrowserContent.vue';

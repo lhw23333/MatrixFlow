@@ -49,7 +49,7 @@ describe('useSettingsStore', () => {
         const store = useSettingsStore();
         await store.fetchSettings();
 
-        expect(mock.settings.get).toHaveBeenCalledTimes(18);
+        expect(mock.settings.get).toHaveBeenCalledTimes(22);
         expect(store.settings.theme).toBe('dark');
         expect(store.settings.language).toBe('en-US');
         expect(store.settings.concurrentTasks).toBe(5);

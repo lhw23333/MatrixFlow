@@ -130,6 +130,7 @@ export const usePanelStore = defineStore('panel', () => {
   }
 
   async function focusPanel(panelId: string) {
+    if (!window.matrixflow) return;
     try {
       const panel = panels.value.find(p => p.id === panelId);
 

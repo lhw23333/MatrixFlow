@@ -319,11 +319,6 @@ const activeTab = ref('general');
 const materialLibraryPath = ref('');
 const materialLibraryPathDefault = ref('');
 
-onMounted(async () => {
-  settings.fetchSettings();
-  await loadMaterialLibraryPath();
-});
-
 async function onBrowserModeChange(mode: AppSettings['browserMode']) {
   await settings.updateSetting('browserMode', mode);
 }
@@ -428,10 +423,10 @@ async function saveMaterialLibraryPath(path: string) {
   }
 }
 
-onMounted(() => {
-  settings.fetchSettings().then(() => {
-    applyTheme(settings.settings.theme);
-  });
+onMounted(async () => {
+  await settings.fetchSettings();
+  applyTheme(settings.settings.theme);
+  await loadMaterialLibraryPath();
 
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   mediaQuery.addEventListener('change', (e) => {

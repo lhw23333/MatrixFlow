@@ -8,16 +8,16 @@ import { getDebugRecorder } from '../base/DebugRecorder';
 const logger = new Logger('XiaohongshuSchedule');
 
 export const XIAOHONGSHU_CONFIG = {
-  maxScheduleDays: 30,
-  supportsScheduledPublish: true,
+  maxScheduleDays: 0,
+  supportsScheduledPublish: false,
 } as const;
 
 export function validateScheduleDate(scheduledTime?: Date): void {
-  if (scheduledTime && scheduledTime.getTime() <= Date.now()) {
+  if (scheduledTime) {
     throw new ValidationError(
-      '定时发布时间必须晚于当前时间',
+      '小红书不支持定时发布',
       { platform: 'xiaohongshu' },
-      'xiaohongshu'
+      'xiaohongshu',
     );
   }
 }
@@ -29,6 +29,14 @@ export async function schedule(ctx: ScheduleContext): Promise<ScheduleResult> {
   debugRecorder.setSessionId(`xiaohongshu_schedule_${accountId ?? 'unknown'}_${Date.now()}`);
 
   try {
+    if (!isScheduledPublishSupported()) {
+      throw new ValidationError(
+        '小红书不支持定时发布',
+        { platform: 'xiaohongshu' },
+        'xiaohongshu',
+      );
+    }
+
     await debugRecorder.recordStep('validate_schedule_capability', async () => {
       if (scheduledTime) {
         validateScheduleDate(scheduledTime);

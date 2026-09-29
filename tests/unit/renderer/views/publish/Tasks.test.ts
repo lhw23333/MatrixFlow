@@ -47,7 +47,7 @@ const stubs = {
   },
   TaskTable: {
     template: '<div data-testid="task-table">{{ groupTotal }}</div>',
-    props: ['groupTotal'],
+     props: ['groupTotal', 'mode'],
   },
   TaskDetailDrawer: {
     template: '<div />',
@@ -133,7 +133,8 @@ describe('publish/Tasks pagination', () => {
     const wrapper = await mountView();
 
     expect(mock.publish.listTasks).toHaveBeenLastCalledWith(expect.objectContaining({
-      groupByContent: true,
+      status: [],
+      platform: [],
       limit: 20,
       offset: 0,
     }));
@@ -141,7 +142,8 @@ describe('publish/Tasks pagination', () => {
     (wrapper.get('[data-testid="size-10"]').element as HTMLButtonElement).click();
     await flushPromises();
     expect(mock.publish.listTasks).toHaveBeenLastCalledWith(expect.objectContaining({
-      groupByContent: true,
+      status: [],
+      platform: [],
       limit: 10,
       offset: 0,
     }));
@@ -162,17 +164,17 @@ describe('publish/Tasks pagination', () => {
     }));
   });
 
-  it('shows only the grouped content count in pagination and has no export action', async () => {
+  it('shows the task count in pagination and uses task rows', async () => {
     mock.publish.listTasks.mockResolvedValue({
       items: makeTasks(9, 0),
       total: 9,
-      taskTotal: 40,
-      statusBreakdown: { completed: 40 },
+      taskTotal: 9,
+      statusBreakdown: { completed: 9 },
     });
 
     const wrapper = await mountView();
 
-    expect(wrapper.get('.page-tasks__pagination-info').text()).toBe('共 9 个发布内容');
+    expect(wrapper.get('.page-tasks__pagination-info').text()).toBe('共 9 个发布任务');
     expect(wrapper.get('[data-testid="task-table"]').text()).toBe('9');
     expect(wrapper.text()).not.toContain('导出');
   });

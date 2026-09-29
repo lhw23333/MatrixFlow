@@ -58,7 +58,7 @@ const globalStubs = {
 };
 
 const sampleTasks = [
-  { id: 't1', type: 'publish', accountId: 'a1', accountName: '抖音号', contentTitle: '视频1', platform: 'douyin', status: 'success', progress: 100, retryCount: 0, createdAt: '2026-05-19T10:00:00Z', updatedAt: '2026-05-19T10:01:00Z', completedAt: '2026-05-19T10:01:00Z' },
+  { id: 't1', type: 'publish', accountId: 'a1', accountName: '抖音号', contentTitle: '视频1', platform: 'douyin', status: 'completed', progress: 100, retryCount: 0, createdAt: '2026-05-19T10:00:00Z', updatedAt: '2026-05-19T10:01:00Z', completedAt: '2026-05-19T10:01:00Z' },
   { id: 't2', type: 'publish', accountId: 'a2', accountName: '小红书号', contentTitle: '视频2', platform: 'xiaohongshu', status: 'failed', progress: 50, message: '上传失败', retryCount: 1, createdAt: '2026-05-19T09:00:00Z', updatedAt: '2026-05-19T09:05:00Z' },
   { id: 't3', type: 'publish', accountId: 'a3', accountName: '快手号', contentTitle: '视频3', platform: 'kuaishou', status: 'pending', progress: 0, retryCount: 0, createdAt: '2026-05-19T11:00:00Z', updatedAt: '2026-05-19T11:00:00Z' },
 ];
@@ -127,10 +127,10 @@ describe('Tasks', () => {
     expect(wrapper.find('.tasks-view--summary').exists()).toBe(true);
   });
 
-  it('renders failed section when tasks have failures', () => {
+  it('shows failed tasks first in the summary table', () => {
     wrapper = mountView(sampleTasks);
-    expect(wrapper.find('.failed-section').exists()).toBe(true);
-    expect(wrapper.find('.section-title').text()).toContain('需要处理');
+    const table = wrapper.findComponent('[data-testid="el-table"]');
+    expect(table.props('data')[0]).toEqual(sampleTasks[1]);
   });
 
   it('renders retry all button when failed tasks exist', () => {

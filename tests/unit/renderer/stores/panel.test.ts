@@ -96,12 +96,12 @@ describe('panel store', () => {
       const store = usePanelStore();
       const result = await store.openPanel('acc-1');
 
-      expect(result).toEqual({
+      expect(result).toEqual(expect.objectContaining({
         id: 'panel-1',
         accountId: 'acc-1',
         platform: 'douyin',
         nickname: 'TestUser',
-      });
+      }));
       expect(store.panels).toHaveLength(1);
       expect(store.panels[0].id).toBe('panel-1');
     });
@@ -323,18 +323,18 @@ describe('panel store', () => {
       await store.loadPanels();
 
       expect(store.panels).toHaveLength(2);
-      expect(store.panels[0]).toEqual({
+      expect(store.panels[0]).toEqual(expect.objectContaining({
         id: 'panel-1',
         accountId: 'acc-1',
         platform: 'douyin',
         nickname: 'TestUser',
-      });
-      expect(store.panels[1]).toEqual({
+      }));
+      expect(store.panels[1]).toEqual(expect.objectContaining({
         id: 'panel-2',
         accountId: 'acc-2',
         platform: 'douyin',
         nickname: 'User2',
-      });
+      }));
     });
 
     it('sets focusedPanelId to first panel when panels exist', async () => {

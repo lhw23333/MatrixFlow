@@ -8,9 +8,7 @@ import { createRequire } from 'module';
 
 const req = createRequire(__filename);
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const SocksProxyAgent = req('socks-proxy-agent').SocksProxyAgent;
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const HttpsProxyAgent = req('https-proxy-agent').HttpsProxyAgent;
 
 const logger = new Logger('ProxyService');

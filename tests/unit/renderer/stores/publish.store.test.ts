@@ -9,6 +9,7 @@ import {
   type PublishTask,
   type HealthCheckResult,
 } from '../../../../src/renderer/stores/publish';
+import { useAccountStore } from '@/renderer/stores/account';
 
 function makeTask(overrides: Partial<PublishTask> = {}): PublishTask {
   return {
@@ -216,10 +217,14 @@ describe('usePublishStore', () => {
       const task1 = makeTask({ id: 't1', accountId: 'acc1' });
       const task2 = makeTask({ id: 't2', accountId: 'acc2' });
       mock.publish.createTask
-        .mockResolvedValueOnce(task1)
-        .mockResolvedValueOnce(task2);
+        .mockResolvedValueOnce({ success: true, data: task1 })
+        .mockResolvedValueOnce({ success: true, data: task2 });
 
       const store = usePublishStore();
+      useAccountStore().accounts = [
+        { id: 'acc1', platform: 'douyin', nickname: '账号1', status: 'online', cookieValid: true, createdAt: '', updatedAt: '' },
+        { id: 'acc2', platform: 'xiaohongshu', nickname: '账号2', status: 'online', cookieValid: true, createdAt: '', updatedAt: '' },
+      ];
       const results = await store.createTask({
         contentId: 'content_001',
         accountIds: ['acc1', 'acc2'],
@@ -233,11 +238,15 @@ describe('usePublishStore', () => {
     });
 
     it('skips null results from IPC', async () => {
-      mock.publish.createTask
-        .mockResolvedValueOnce(makeTask({ id: 't1' }))
-        .mockResolvedValueOnce(null);
+       mock.publish.createTask
+         .mockResolvedValueOnce({ success: true, data: makeTask({ id: 't1' }) })
+         .mockResolvedValueOnce(null);
 
-      const store = usePublishStore();
+       const store = usePublishStore();
+       useAccountStore().accounts = [
+         { id: 'acc1', platform: 'douyin', nickname: '账号1', status: 'online', cookieValid: true, createdAt: '', updatedAt: '' },
+         { id: 'acc2', platform: 'xiaohongshu', nickname: '账号2', status: 'online', cookieValid: true, createdAt: '', updatedAt: '' },
+       ];
       const results = await store.createTask({
         contentId: 'content_001',
         accountIds: ['acc1', 'acc2'],
@@ -250,9 +259,12 @@ describe('usePublishStore', () => {
     });
 
     it('passes metadata with dryRun and coverRatio', async () => {
-      mock.publish.createTask.mockResolvedValue(makeTask());
+       mock.publish.createTask.mockResolvedValue({ success: true, data: makeTask() });
 
-      const store = usePublishStore();
+       const store = usePublishStore();
+       useAccountStore().accounts = [
+         { id: 'acc1', platform: 'douyin', nickname: '账号1', status: 'online', cookieValid: true, createdAt: '', updatedAt: '' },
+       ];
       await store.createTask({
         contentId: 'content_001',
         accountIds: ['acc1'],

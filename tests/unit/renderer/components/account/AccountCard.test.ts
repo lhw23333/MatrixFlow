@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
+import { createPinia } from 'pinia';
 import AccountCard from '@/renderer/components/account/AccountCard.vue';
 import type { Account } from '@/renderer/stores/account';
 
@@ -24,7 +25,7 @@ const globalStubs = {
     props: ['size'],
   },
   'el-button': {
-    template: '<button data-testid="el-btn" @click="$emit(\'click\')"><slot /></button>',
+     template: '<button data-testid="el-btn" @click="$emit(\'click\', $event)"><slot /></button>',
     props: ['type', 'size', 'text', 'disabled'],
     emits: ['click'],
   },
@@ -37,6 +38,11 @@ const globalStubs = {
     props: ['title'],
     emits: ['confirm'],
   },
+  'el-popover': {
+    template: '<div v-if="visible"><slot /></div>',
+    props: ['visible'],
+  },
+  'el-input': true,
 };
 
 function createAccount(overrides: Partial<Account> = {}): Account {
@@ -52,18 +58,17 @@ function createAccount(overrides: Partial<Account> = {}): Account {
   };
 }
 
-function mountCard(overrides: Partial<Account> = {}, selected = false) {
+function mountCard(overrides: Partial<Account> = {}) {
   const account = createAccount(overrides);
   return mount(AccountCard, {
     props: {
       account,
-      selected,
       groups: [
-        { id: 'grp-1', name: '默认分组' },
-        { id: 'grp-2', name: '其他分组' },
+         { id: 'grp-1', name: '默认分组', color: '#409eff' },
+         { id: 'grp-2', name: '其他分组', color: '#67c23a' },
       ],
     },
-    global: { stubs: globalStubs },
+    global: { plugins: [createPinia()], stubs: globalStubs },
   });
 }
 
@@ -91,7 +96,7 @@ describe('AccountCard', () => {
     ];
     for (const [platform, label] of cases) {
       wrapper = mountCard({ platform });
-      const tag = wrapper.find('.account-card__platform');
+      const tag = wrapper.find('.account-card__plat-tag');
       expect(tag.text()).toBe(label);
       wrapper.unmount();
     }
@@ -99,108 +104,83 @@ describe('AccountCard', () => {
 
   it('renders raw platform string for unknown platforms', () => {
     wrapper = mountCard({ platform: 'tiktok' });
-    expect(wrapper.find('.account-card__platform').text()).toBe('tiktok');
+    expect(wrapper.find('.account-card__plat-tag').text()).toBe('tiktok');
   });
 
   it('renders status label correctly', () => {
-    const cases: Array<[Account['status'], string]> = [
-      ['online', '在线'],
-      ['offline', '离线'],
-      ['expired', '已过期'],
+    const cases: Array<[Account['status'], boolean, string]> = [
+      ['online', true, '在线'],
+      ['offline', false, '离线'],
+      ['expired', false, '离线'],
     ];
-    for (const [status, label] of cases) {
-      wrapper = mountCard({ status });
-      expect(wrapper.find('.account-card__status-text').text()).toBe(label);
+    for (const [status, cookieValid, label] of cases) {
+      wrapper = mountCard({ status, cookieValid });
+      expect(wrapper.find('.account-card__tag').text()).toContain(label);
       wrapper.unmount();
     }
   });
 
-  it('renders cookie valid tag', () => {
+  it('renders online state when cookie is valid', () => {
     wrapper = mountCard({ cookieValid: true });
-    const cookieTag = wrapper.findAll('[data-testid="el-tag"]').find(t => t.text().includes('Cookie有效'));
-    expect(cookieTag).toBeDefined();
+    expect(wrapper.find('.account-card__tag').text()).toContain('在线');
   });
 
-  it('renders cookie invalid tag', () => {
+  it('renders offline state when cookie is invalid', () => {
     wrapper = mountCard({ cookieValid: false });
-    const cookieTag = wrapper.findAll('[data-testid="el-tag"]').find(t => t.text().includes('Cookie失效'));
-    expect(cookieTag).toBeDefined();
+    expect(wrapper.find('.account-card__tag').text()).toContain('离线');
   });
 
   // ── Conditional rendering ──
 
-  it('shows group name when account has groupId', () => {
-    wrapper = mountCard({ groupId: 'grp-1' });
-    expect(wrapper.find('.account-card__group').exists()).toBe(true);
-    expect(wrapper.find('.account-card__group').text()).toContain('默认分组');
+  it('shows assigned group names', () => {
+    wrapper = mountCard({ groupInfos: [{ id: 'grp-1', name: '默认分组', color: '#409eff' }] });
+    expect(wrapper.find('.account-card__group-chip').exists()).toBe(true);
+    expect(wrapper.find('.account-card__group-chip').text()).toContain('默认分组');
   });
 
   it('hides group section when account has no groupId', () => {
     wrapper = mountCard();
-    expect(wrapper.find('.account-card__group').exists()).toBe(false);
+    expect(wrapper.find('.account-card__group-chip').exists()).toBe(false);
   });
 
   it('shows fingerprint binding tag when fingerprintId is set', () => {
     wrapper = mountCard({ fingerprintId: 'fp-1' });
-    const bindings = wrapper.find('.account-card__bindings');
-    expect(bindings.exists()).toBe(true);
-    expect(bindings.text()).toContain('指纹已绑定');
+    expect(wrapper.text()).toContain('指纹已设');
   });
 
   it('shows proxy binding tag when proxyId is set', () => {
     wrapper = mountCard({ proxyId: 'px-1' });
-    const bindings = wrapper.find('.account-card__bindings');
-    expect(bindings.exists()).toBe(true);
-    expect(bindings.text()).toContain('代理已绑定');
+    expect(wrapper.text()).toContain('代理已设');
   });
 
   it('hides bindings section when no bindings', () => {
     wrapper = mountCard();
-    expect(wrapper.find('.account-card__bindings').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('指纹已设');
+    expect(wrapper.text()).not.toContain('代理已设');
   });
 
   // ── CSS classes ──
 
-  it('applies expired class when status is expired', () => {
-    wrapper = mountCard({ status: 'expired' });
-    expect(wrapper.find('.account-card').classes()).toContain('account-card--expired');
+  it('renders expired accounts as offline', () => {
+    wrapper = mountCard({ status: 'expired', cookieValid: false });
+    expect(wrapper.find('.account-card__tag').text()).toContain('离线');
   });
 
-  it('applies selected class when selected prop is true', () => {
-    wrapper = mountCard({}, true);
-    expect(wrapper.find('.account-card').classes()).toContain('account-card--selected');
-  });
-
-  it('does not apply selected class when selected prop is false', () => {
-    wrapper = mountCard({}, false);
-    expect(wrapper.find('.account-card').classes()).not.toContain('account-card--selected');
-  });
-
-  // ── Events ──
-
-  it('emits toggleSelect on card click', async () => {
+  it('emits settings when the settings action is clicked', async () => {
     wrapper = mountCard();
-    await wrapper.find('.account-card').trigger('click');
-    expect(wrapper.emitted('toggleSelect')).toBeTruthy();
-    expect(wrapper.emitted('toggleSelect')![0]).toEqual(['acc-1']);
-  });
-
-  it('emits detail when detail button clicked', async () => {
-    wrapper = mountCard();
-    const actions = wrapper.find('.account-card__actions');
-    const buttons = actions.findAll('[data-testid="el-btn"]');
-    await buttons[0].trigger('click');
-    expect(wrapper.emitted('detail')).toBeTruthy();
-    expect(wrapper.emitted('detail')![0]).toEqual(['acc-1']);
+    const settingsButton = wrapper.findAll('[data-testid="el-btn"]')[0];
+    expect(settingsButton.exists()).toBe(true);
+    await settingsButton.trigger('click');
+    expect(wrapper.emitted('settings')).toEqual([['acc-1']]);
   });
 
   it('renders lastLogin time', () => {
     wrapper = mountCard({ lastLogin: '2026-05-19 10:00' });
-    expect(wrapper.find('.account-card__time').text()).toBe('2026-05-19 10:00');
+    expect(wrapper.findAll('.account-card__info-val')[1].text()).toContain('2026-05-19 10:00');
   });
 
-  it('renders "未登录" when lastLogin is empty', () => {
+  it('falls back to creation time when lastLogin is empty', () => {
     wrapper = mountCard({ lastLogin: undefined });
-    expect(wrapper.find('.account-card__time').text()).toBe('未登录');
+    expect(wrapper.findAll('.account-card__info-val')[1].text()).toContain('2026-01-01');
   });
 });

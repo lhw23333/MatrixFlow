@@ -234,7 +234,7 @@ describe('kuaishou/schedule', () => {
       const result = await schedule({
         page: mockPage,
         title: '测试',
-        scheduledTime: new Date('2026-06-10T12:00:00'),
+         scheduledTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
       } as any);
 
       expect(result.success).toBe(false);

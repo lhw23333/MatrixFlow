@@ -118,7 +118,7 @@ export const useTaskStore = defineStore('task', () => {
           return counts;
         }, {});
     return {
-      total: taskTotal.value > 0 ? taskTotal.value : total.value,
+      total: taskTotal.value > 0 ? taskTotal.value : (total.value || tasks.value.length),
       pending: (sb['pending'] ?? 0) + (sb['scheduled'] ?? 0),
       running: sb['running'] ?? 0,
       completed: sb['completed'] ?? 0,
@@ -209,6 +209,7 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value = [];
       total.value = 0;
       taskTotal.value = 0;
+      statusBreakdown.value = {};
     } finally {
       if (requestId === fetchRequestId) {
         loading.value = false;

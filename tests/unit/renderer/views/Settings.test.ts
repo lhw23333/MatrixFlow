@@ -117,7 +117,7 @@ describe('Settings', () => {
   it('renders all tab panes', () => {
     wrapper = mountView();
     const panes = wrapper.findAll('[data-testid="el-tab-pane"]');
-    expect(panes.length).toBe(9);
+    expect(panes.length).toBe(11);
   });
 
   it('renders settings card in general tab', () => {

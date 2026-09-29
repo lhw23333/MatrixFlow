@@ -7,7 +7,7 @@ vi.mock('element-plus', () => ({
   ElMessage: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }));
 
-vi.mock('@/stores/panel', () => ({
+vi.mock('@/renderer/stores/panel', () => ({
   usePanelStore: () => ({
     panels: [],
     availableAccounts: [
@@ -21,10 +21,24 @@ vi.mock('@/stores/panel', () => ({
     openPanel: vi.fn().mockResolvedValue(null),
     closePanel: vi.fn(),
     focusPanel: vi.fn(),
+    hideAllPanels: vi.fn().mockResolvedValue(undefined),
+    showAllPanels: vi.fn().mockResolvedValue(undefined),
   }),
 }));
 
 const globalStubs = {
+  PanelSidebar: {
+    template: '<aside data-testid="panel-sidebar" />',
+    props: ['accounts', 'activePanelIds', 'loading'],
+  },
+  BrowserTabs: {
+    template: '<div data-testid="browser-tabs" />',
+    props: ['panels', 'activePanelId'],
+  },
+  BrowserContent: {
+    template: '<div data-testid="browser-content" />',
+    props: ['panel'],
+  },
   'el-select': {
     template: '<select data-testid="el-select"><slot /></select>',
     props: ['modelValue', 'placeholder', 'style', 'disabled'],
@@ -67,50 +81,26 @@ describe('MultiPanel', () => {
     expect(wrapper.find('.multi-panel-view').exists()).toBe(true);
   });
 
-  it('renders panel toolbar with account selector', () => {
+  it('renders the panel sidebar and workspace', () => {
     wrapper = mountView();
-    expect(wrapper.find('.panel-toolbar').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="el-select"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="panel-sidebar"]').exists()).toBe(true);
+    expect(wrapper.find('.workspace').exists()).toBe(true);
   });
 
-  it('renders open panel button', () => {
+  it('renders the empty workspace state', () => {
     wrapper = mountView();
-    const buttons = wrapper.findAll('[data-testid="el-btn"]');
-    const openBtn = buttons.find(b => b.text().includes('打开面板'));
-    expect(openBtn).toBeDefined();
-  });
-
-  it('renders panel count indicator', () => {
-    wrapper = mountView();
-    expect(wrapper.find('.panel-count').exists()).toBe(true);
-    expect(wrapper.find('.panel-count').text()).toContain('已打开');
-  });
-
-  it('renders empty state when no panels open', () => {
-    wrapper = mountView();
-    expect(wrapper.find('.panel-empty').exists()).toBe(true);
-  });
-
-  it('renders hint text in empty state', () => {
-    wrapper = mountView();
-    const empty = wrapper.find('.panel-empty');
-    expect(empty.text()).toContain('暂无打开的面板');
-  });
-
-  it('renders secondary hint about max panels', () => {
-    wrapper = mountView();
-    const hint = wrapper.find('.hint-secondary');
-    expect(hint.exists()).toBe(true);
-    expect(hint.text()).toContain('10');
+    expect(wrapper.find('.workspace__empty').exists()).toBe(true);
+    expect(wrapper.find('.workspace__empty-title').text()).toContain('选择账号');
+    expect(wrapper.find('.workspace__empty-features').text()).toContain('10');
   });
 
   it('does not show panel tabs when no panels open', () => {
     wrapper = mountView();
-    expect(wrapper.find('.panel-tabs').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="browser-tabs"]').exists()).toBe(false);
   });
 
   it('does not show panel content when no panels open', () => {
     wrapper = mountView();
-    expect(wrapper.find('.panel-content').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="browser-content"]').exists()).toBe(false);
   });
 });

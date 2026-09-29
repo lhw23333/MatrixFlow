@@ -85,7 +85,9 @@ class KuaishouAdapter implements PlatformAdapter {
   }
 
   async login(accountId: string, headless: boolean = false, options?: LoginOptions): Promise<CookieResult> {
-    return qrCodeLogin(accountId, headless, undefined, undefined, options);
+    return options
+      ? qrCodeLogin(accountId, headless, undefined, undefined, options)
+      : qrCodeLogin(accountId, headless);
   }
 
   async checkCookie(accountId: string): Promise<boolean> {

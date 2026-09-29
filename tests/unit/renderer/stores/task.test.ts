@@ -140,7 +140,8 @@ describe('useTaskStore', () => {
       expect(store.total).toBe(2);
       expect(store.taskTotal).toBe(4);
       expect(mock.publish.listTasks).toHaveBeenCalledWith(expect.objectContaining({
-        groupByContent: true,
+        status: [],
+        platform: [],
         limit: 20,
         offset: 0,
       }));
